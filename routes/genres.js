@@ -12,7 +12,7 @@ router.get('/', async (req, res) => {
 })
 
 router.get('/:id', [objectId], async (req, res) => {
-  const genre = await Genre.findById(req.params.id)
+  const genre = await Genre.findById(req.params.id).select('-__v')
   if (!genre) return res.json({
     status: 404,
     message: 'Genre not found'
@@ -45,6 +45,41 @@ router.post('/', [validate], async (req, res) => {
       message: ex.message
     })
   }
+})
+
+router.patch('/:id', [objectId, validate], async (req, res) => {
+  try {
+    const genre = await Genre.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true})
+    // genre not exists
+    if (!genre) return res.json({
+      status: 404,
+      message: 'Genre not found'
+    })
+    // updated
+    return res.json({
+      status: 200,
+      data: genre
+    })
+  }
+  catch(ex) {
+    console.log(ex.message)
+    return res.json({
+      status: 400,
+      message: ex.message
+    })
+  }
+})
+
+router.delete('/:id', [objectId], async (req, res) => {
+  // delete in db
+  const result = await Genre.deleteOne({ _id: req.params.id })
+  // case genre not found
+  if (result.n === 0) return res.json({
+    status: 404,
+    message: 'Genre not found'
+  })
+  // genre found and deletedCount >= 0
+  return res.json({ status: 200 })
 })
 
 module.exports = router

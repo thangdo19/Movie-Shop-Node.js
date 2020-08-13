@@ -31,29 +31,18 @@ const userSchema = new mongoose.Schema({
 
 const User = mongoose.model('User', userSchema)
 
-function validatePost(req, res, next) {
-  const schema = Joi.object({
-    name: Joi.string().max(255).required(),
-    email: Joi.string().email().min(9).max(255).required(),
-    password: Joi.string().min(5).max(1024).required(),
-    role: Joi.string()
-  })
-  const { error } = schema.validate(req.body)
-  if (error) return res.json({
-    status: 400,
-    message: error.message
-  })
-  next()
-}
-
-function validatePatch(req, res, next) {
-  const schema = Joi.object({
+function validate(req, res, next) {
+  const schema = Joi.object().keys({
     name: Joi.string().max(255),
     email: Joi.string().email().max(255),
     password: Joi.string().min(5).max(1024),
-    role: Joi.string()
+    role: Joi.string().optional() // this prop is always optional
   })
-  const { error } = schema.validate(req.body)
+  // PATCH method will not require any prop
+  const { error } = schema.validate(req.body, {
+    presence: (req.method !== 'PATCH') ? 'required' : 'optional',
+    abortEarly: false
+  })
   if (error) return res.json({
     status: 400,
     message: error.message
@@ -63,6 +52,5 @@ function validatePatch(req, res, next) {
 
 module.exports = {
   User,
-  validatePost,
-  validatePatch
+  validate
 }

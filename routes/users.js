@@ -1,4 +1,5 @@
-const { User, validatePost, validatePatch } = require('../model/user')
+const { User, validate } = require('../model/user')
+const objectId = require('../middleware/objectId')
 const bcrypt = require('bcrypt')
 const _ = require('lodash')
 const express = require('express')
@@ -12,7 +13,19 @@ router.get('/', async (req, res) => {
   })
 })
 
-router.post('/', [validatePost], async (req, res) => {
+router.get('/:id', [objectId], async (req, res) => {
+  const user = await User.findById(req.params.id).select('-__v -password')
+  if (!user) return res.json({
+    status: 404,
+    message: 'User not found'
+  })
+  return res.json({
+    status: 200,
+    data: user
+  })
+})
+
+router.post('/', [validate], async (req, res) => {
   // check for existence
   const isExist = await User.exists({ email: req.body.email })
   if (isExist) return res.json({
@@ -39,7 +52,7 @@ router.post('/', [validatePost], async (req, res) => {
   }
 })
 
-router.patch('/:id', [validatePatch], async (req, res) => {
+router.patch('/:id', [validate], async (req, res) => {
   // check for existence
   const isExist = await User.exists({ email: req.body.email })
   if (!isExist) return res.json({
@@ -76,9 +89,7 @@ router.delete('/:id', async (req, res) => {
   })
   // delete
   await User.findByIdAndRemove(req.params.id)
-  return res.json({
-    status: 200
-  })
+  return res.json({ status: 200 })
 })
 
 module.exports = router

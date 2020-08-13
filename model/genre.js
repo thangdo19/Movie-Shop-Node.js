@@ -18,8 +18,9 @@ function validate(req, res, next) {
     name: Joi.string().max(255)
   })
   // required for POST & PUT
-  const { error } = 
-    (req.method === 'POST' || req.method === 'PUT') ? schema.validate(req.body, { presence: 'required' }) : schema.validate(req.body)
+  const { error } = schema.validate(req.body, { 
+    presence: (req.method !== 'PATCH') ? 'required' : 'optional' 
+  })
   if (error) return res.json({
     status: 400,
     message: error.message
