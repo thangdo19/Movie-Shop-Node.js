@@ -7,6 +7,7 @@ require('dotenv').config()
 // const error = require('./')
 const users = require('./routes/users')
 const genres = require('./routes/genres')
+const auth = require('./routes/auth')
 // check for jwt private key
 if (!process.env.JWT_KEY) {
   console.log('FATAL ERROR: JWT_KEY is not provided')
@@ -24,6 +25,7 @@ app.use(morgan('dev'))
 // routes
 app.use('/api/users', users)
 app.use('/api/genres', genres)
+app.use('/api/auth', auth)
 // // handling error in routes
 // app.use()
 // connect db

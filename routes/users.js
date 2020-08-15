@@ -2,6 +2,7 @@ const { User, validate } = require('../model/user')
 const objectId = require('../middleware/objectId')
 const bcrypt = require('bcrypt')
 const _ = require('lodash')
+const jwt = require('jsonwebtoken')
 const express = require('express')
 const router = express.Router()
 
@@ -30,7 +31,7 @@ router.post('/', [validate], async (req, res) => {
   const isExist = await User.exists({ email: req.body.email })
   if (isExist) return res.json({
     status: 400,
-    message: 'User already exists'
+    message: 'User already registered'
   })
   // create user
   try {
@@ -38,9 +39,12 @@ router.post('/', [validate], async (req, res) => {
     req.body.password = await bcrypt.hash(req.body.password, await bcrypt.genSalt(10))
     // create user (trigger validator)
     const user = await User.create(req.body)
+    // generate token
+    const token = jwt.sign({ _id: user._id, role: user.role }, process.env.JWT_KEY)
     return res.json({
       status: 200,
-      data: user
+      token,
+      data: _.pick(user, ['_id', 'email', 'name'])
     })
   }
   catch(ex) {
